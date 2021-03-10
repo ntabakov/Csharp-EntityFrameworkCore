@@ -16,9 +16,61 @@ namespace BookShop
         {
             using var db = new BookShopContext();
             // DbInitializer.ResetDatabase(db);
-            Console.WriteLine(GetTotalProfitByCategory(db));
+            Console.WriteLine(GetMostRecentBooks(db));
         }
 
+        public static int RemoveBooks(BookShopContext context)
+        {
+            int removedBooks = 0;
+            var books = context.Books.Where(x => x.Copies < 4200);
+            foreach (var book in books)
+            {
+                context.Books.Remove(book);
+                removedBooks++;
+            }
+
+            context.SaveChanges();
+            return removedBooks;
+        }
+
+        public static void IncreasePrices(BookShopContext context)
+        {
+            var books = context.Books.Where(x => x.ReleaseDate.Value.Year < 2010);
+            foreach (var book in books)
+            {
+                book.Price += 5;
+
+            }
+
+            context.SaveChanges();
+        }
+        public static string GetMostRecentBooks(BookShopContext context)
+        {
+            var categories = context.Categories.Select(x => new
+            {
+                x.Name,
+                Books = x.CategoryBooks.Select(c => new
+                {
+                    c.Book.Title,
+                    c.Book.ReleaseDate
+                }).OrderByDescending(r => r.ReleaseDate).Take(3)
+            }).ToList().OrderBy(x=>x.Name);
+
+
+            var sb = new StringBuilder();
+
+            foreach (var c in categories)
+            {
+                sb.AppendLine($"--{c.Name}");
+                foreach (var book in c.Books)
+                {
+                    sb.AppendLine($"{book.Title} ({book.ReleaseDate.Value.Year})");
+                }
+            }
+
+
+            return sb.ToString().TrimEnd();
+        }
         public static string GetTotalProfitByCategory(BookShopContext context)
         {
             var categories = context.Categories.Select(x => new
