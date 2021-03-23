@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using AutoMapper;
@@ -22,11 +23,45 @@ namespace CarDealer
         public static void Main(string[] args)
         {
             var db = new CarDealerContext();
-            var json = File.ReadAllText(_customersPath);
-            Console.WriteLine(ImportCustomers(db, json));
+            //var json = File.ReadAllText(_salesPath);
+            Console.WriteLine(GetCarsFromMakeToyota(db));
 
         }
 
+        public static string GetCarsFromMakeToyota(CarDealerContext context)
+        {
+            var cars = context.Cars.Where(x => x.Make.ToLower() == "toyota")
+                .OrderBy(x => x.Model).ThenByDescending(x => x.TravelledDistance)
+                .Select(x=>new
+                {
+                    x.Id,
+                    x.Make,
+                    x.Model,
+                    x.TravelledDistance,
+                }).ToList();
+            var json = JsonConvert.SerializeObject(cars, Formatting.Indented);
+            return json;
+        }
+        public static string GetOrderedCustomers(CarDealerContext context)
+        {
+            var customers = context.Customers.OrderBy(x=>x.BirthDate).ThenBy(x=>x.IsYoungDriver)
+                .Select(x=>new
+                {
+                    x.Name,
+                    BirthDate = x.BirthDate.ToString("dd/MM/yyyy",CultureInfo.GetCultureInfo("es-ES")),
+                    x.IsYoungDriver,
+                });
+
+            var settings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                
+                
+            };
+            var json = JsonConvert.SerializeObject(customers, settings);
+
+            return json;
+        }
         public static string ImportSales(CarDealerContext context, string inputJson)
         {
             var sales = JsonConvert.DeserializeObject<Sale[]>(inputJson);
