@@ -24,8 +24,111 @@ namespace CarDealer
         {
             var db = new CarDealerContext();
             //var json = File.ReadAllText(_salesPath);
-            Console.WriteLine(GetCarsFromMakeToyota(db));
+            Console.WriteLine(GetTotalSalesByCustomer(db));
 
+        }
+
+        public static string GetTotalSalesByCustomer(CarDealerContext context)
+        {
+            var customers = context.Customers
+                .Include(x=>x.Sales)
+                .ThenInclude(x=>x.Car)
+                .ThenInclude(x=>x.PartCars)
+                .ThenInclude(x=>x.Part.Price)
+                .Where(x => x.Sales.Count > 0)
+                .Select(x=> new
+                {
+                    FullName = x.Name,
+                    BoughtCars = x.Sales.Count,
+                    Cars = x.Sales.Sum(c=>c.Car.PartCars.Sum(z=>z.Part.Price))
+                    
+                })
+                .ToList();
+
+            var json = JsonConvert.SerializeObject(customers, Formatting.Indented);
+            return json;
+        }
+
+        public static string GetCarsWithTheirListOfParts(CarDealerContext context)
+        {
+            //var carParts = context.Cars
+            //    .Select(x => new
+            //    {
+            //        x.Make,
+            //        x.Model,
+            //        x.TravelledDistance,
+            //    });
+            //var result = new
+            //{
+            //    car = carParts,
+            //    parts = context.Cars.Select(x => x.PartCars.Select(c => new
+            //    {
+            //        c.Part.Name,
+            //        c.Part.Price,
+            //    }))
+            //};
+
+            var cars = context
+                .Cars
+                .Select(x => new
+            {
+
+                car = new
+                {
+                    Make =x.Make,
+                    Model = x.Model,
+                    TravelledDistance = x.TravelledDistance
+                },
+                parts = x.PartCars.Select(c => new
+                {
+                    Name = c.Part.Name,
+                    Price = c.Part.Price.ToString("f2"),
+                }).ToList()
+            }).ToList();
+
+
+
+            var json = JsonConvert.SerializeObject(cars, Formatting.Indented);
+            return json;
+            //
+            //var cars = context
+            //    .Cars
+            //    .Select(c => new
+            //    {
+            //        car = new
+            //        {
+            //            Make = c.Make,
+            //            Model = c.Model,
+            //            TravelledDistance = c.TravelledDistance
+            //        },
+            //        parts = c.PartCars.Select(pc => new
+            //            {
+            //                Name = pc.Part.Name,
+            //                Price = pc.Part.Price.ToString("f2")
+            //            })
+            //            .ToList()
+            //    })
+            //    .ToList();
+
+            //var json = JsonConvert.SerializeObject(cars, Formatting.Indented);
+
+            //return json;
+        }
+
+        public static string GetLocalSuppliers(CarDealerContext context)
+        {
+            var suppliers = context.Suppliers
+                .Where(x => x.IsImporter == false)
+                .Select(x=>new
+                {
+                    x.Id,
+                    x.Name,
+                    PartsCount = x.Parts.Count,
+                });
+            var json = JsonConvert.SerializeObject(suppliers, Formatting.Indented);
+
+
+            return json;
         }
 
         public static string GetCarsFromMakeToyota(CarDealerContext context)
