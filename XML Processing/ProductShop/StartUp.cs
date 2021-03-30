@@ -55,6 +55,8 @@ namespace ProductShop
             var xml = XmlConverter.Serialize(users, "Users");
 
             return xml;
+            
+            
         }
 
         public static string GetProductsInRange(ProductShopContext context)
