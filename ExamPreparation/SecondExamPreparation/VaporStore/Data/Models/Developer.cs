@@ -7,6 +7,11 @@ namespace VaporStore.Data.Models
 {
     public class Developer
     {
+        public Developer()
+        {
+            this.Games = new List<Game>();
+        }
+
         public int Id { get; set; }
 
         [Required]

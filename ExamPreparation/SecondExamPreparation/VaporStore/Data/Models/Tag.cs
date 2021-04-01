@@ -7,6 +7,11 @@ namespace VaporStore.Data.Models
 {
     public class Tag
     {
+        public Tag()
+        {
+            this.GameTags = new List<GameTag>();
+        }
+
         public int Id { get; set; }
 
         [Required]

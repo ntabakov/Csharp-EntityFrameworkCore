@@ -7,6 +7,11 @@ namespace VaporStore.Data.Models
 {
     public class User
     {
+        public User()
+        {
+            this.Cards = new List<Card>();
+        }
+
         public int Id { get; set; }
 
         [Required]

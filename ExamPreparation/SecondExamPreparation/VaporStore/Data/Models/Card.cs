@@ -8,6 +8,11 @@ namespace VaporStore.Data.Models
 {
     public class Card
     {
+        public Card()
+        {
+            this.Purchases = new List<Purchase>();
+        }
+
         public int Id { get; set; }
 
         [Required]
