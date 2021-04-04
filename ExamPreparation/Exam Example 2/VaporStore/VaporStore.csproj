@@ -30,9 +30,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DataProcessor\Dto\Export\" />
     <Folder Include="ExportResults\" />
     <Folder Include="ImportResults\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="D:\softuni\sb.snippet" Link="sb.snippet" />
+    <None Include="D:\softuni\sb.xml" Link="sb.xml" />
   </ItemGroup>
 
 </Project>

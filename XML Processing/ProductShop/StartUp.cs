@@ -28,9 +28,65 @@ namespace ProductShop
             //Console.WriteLine(ImportCategoryProducts(db, xmlCategoriesProducts));
 
            // Console.WriteLine(GetProductsInRange(db));
-            Console.WriteLine(GetSoldProducts(db));
+           // Console.WriteLine(GetSoldProducts(db));
+            //Console.WriteLine(GetCategoriesByProductsCount(db));
+            Console.WriteLine(GetUsersWithProducts(db));
 
 
+        }
+
+        public static string GetUsersWithProducts(ProductShopContext context)
+        {
+            var user = new UsersRootDto()
+            {
+                Count = context.Users.Count(x=>x.ProductsSold.Any(a=>a.Buyer!=null)),
+                Users = context.Users.ToArray()
+                    .Where(u => u.ProductsSold.Any(p => p.Buyer != null))
+                    .OrderByDescending(u => u.ProductsSold.Count)
+                    .Take(10)
+                    .Select(u => new UserDto()
+                    {
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Age = u.Age.Value,
+                        SoldProducts = new SoldProductsDto
+                        {
+                            Count = u.ProductsSold.Count(ps => ps.Buyer != null),
+                            Products = u.ProductsSold
+                                .ToArray()
+                                .Where(ps => ps.Buyer != null)
+                                .Select(ps => new ProductsDto()
+                                {
+                                    Name = ps.Name,
+                                    Price = ps.Price
+                                })
+                                .OrderByDescending(p => p.Price)
+                                .ToArray()
+                        }
+                    })
+
+                    .ToArray()
+            };
+
+            var result = XmlConverter.Serialize(user, "Users");
+            return result;
+        }
+
+        public static string GetCategoriesByProductsCount(ProductShopContext context)
+        {
+            var categories = context.Categories
+            .Select(x => new CategoriesOutpudModel
+            {
+                Name = x.Name,
+                Count = x.CategoryProducts.Count,
+                AvgPrice = x.CategoryProducts.Average(a => a.Product.Price),
+                TotalRevenue = x.CategoryProducts.Sum(s => s.Product.Price)
+            }).OrderByDescending(x => x.Count)
+            .ThenBy(x=>x.TotalRevenue).ToList();
+
+            var result = XmlConverter.Serialize(categories, "Categories");
+
+            return result;
         }
 
         public static string GetSoldProducts(ProductShopContext context)
